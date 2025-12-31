@@ -1,0 +1,55 @@
+
+
+# ---- base dataset location ----
+data_dir: "data/raw"
+dataset_name: "VOC2012_seg_subset_trainval"
+
+# ---- subdirectories ----
+image_subdir: "JPEGImages"
+mask_subdir: "SegmentationClass"
+splits_subdir: "ImageSets/Segmentation"
+
+# ---- split file names ----
+train_split: "train.txt"
+val_split: "val.txt"
+
+# ---- how to split val.txt ----
+val_fraction: 0.5     # first half = val, second half = extra train
+
+# ---- dataloader ----
+batch_size: 8
+num_workers: 4
+pin_memory: false
+shuffle_train: true
+test_batch_size: 1
+
+image_size: 128
+
+# ---- model ----
+# model_checkpoint: null  # path to model checkpoint to load
+
+
+model:
+  name: "resnet34_unet"
+  num_classes: 21
+  freeze_encoder: false
+  # wrap_output: true
+
+# ---- training ----
+optimizer:
+  lr: 0.001
+  weight_decay: 0.00001
+
+trainer:
+  epochs: 5
+
+# ---- metrics ----
+metrics:
+  ignore_index: 255
+
+# ---- dev mode ----
+debug_samples: null    # set to e.g., 16 when debugging
+
+# ---- model performance visualization ----
+visualize_model_preds: false
+visualize_every: 1   # visualize every N epoch during training
