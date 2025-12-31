@@ -2,7 +2,7 @@
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-data/
+/data/
 runs/
 checkpoints/
 debug_vis/
