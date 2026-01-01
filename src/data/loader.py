@@ -101,9 +101,10 @@ def get_datasets(cfg, train_tfms=None, val_tfms=None, test_tfms=None):
 def get_dataloaders(cfg_path="configs/default.yaml",
                     train_tfms=None,
                     val_tfms=None,
-                    test_tfms=None):
-
-    cfg = load_config(cfg_path)
+                    test_tfms=None,
+                    cfg=None):
+    if cfg is None:
+        cfg = load_config(cfg_path)
 
     # train_ds, val_ds = get_datasets(cfg, train_tfms, val_tfms)
     test_tfms = val_tfms if test_tfms is None else test_tfms # if not provided, use val_tfms
