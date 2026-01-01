@@ -21,7 +21,7 @@ transform_pipeline: "basic"  # options: "baseline", "advanced"
 
 
 # ---- dataloader ----
-batch_size: 8
+batch_size: 64
 num_workers: 2
 pin_memory: true
 shuffle_train: true
@@ -49,7 +49,7 @@ optimizer:
 scheduler:
   name: "multisteplr"
   params:
-    milestones: [100, 200]
+    milestones: [150, 300]
     gamma: 0.1
   warmup: true
   update_mode: "epoch"
@@ -59,7 +59,7 @@ scheduler:
 # ---- training ----
 
 trainer:
-  epochs: 300
+  epochs: 400
 
 loss_function: "cross_entropy"
 
