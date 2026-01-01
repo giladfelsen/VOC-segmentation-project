@@ -1,3 +1,4 @@
+
 import torch
 import torch.nn.functional as F
 
@@ -9,8 +10,20 @@ def cross_entropy_loss(logits, targets, ignore_index=None):
         ignore_index=ignore_index
     )
 
+# class CrossEntropyLoss:
+#     def __init__(self, ignore_index=None):
+#         self.ignore_index = ignore_index
 
-def dice_loss(logits, targets, eps=1e-7):
+#     def __call__(self, logits, targets, ignore_index=None):
+#         ignore_index = ignore_index if ignore_index is not None else self.ignore_index
+#         return F.cross_entropy(
+#             logits,
+#             targets,
+#             ignore_index=ignore_index
+#         )
+
+
+def dice_loss(logits, targets, eps=1e-7, **kwargs):
     """
     logits: (B, C, H, W)
     targets: (B, H, W)
@@ -33,13 +46,16 @@ def dice_loss(logits, targets, eps=1e-7):
     return 1 - dice.mean()
 
 
-def combined_ce_dice_loss(logits, targets, alpha=0.5, ignore_index=None):
+def combined_ce_dice_loss(logits, targets, alpha=0.5, ignore_index=255, **kwargs):
+    """
+    loss = alpha * CE + (1 - alpha) * DICE
+    """
     ce = cross_entropy_loss(logits, targets, ignore_index)
     dl = dice_loss(logits, targets)
     return alpha * ce + (1 - alpha) * dl
 
 
-def class_weighted_cross_entropy_loss(logits, targets, class_weights, ignore_index=None):
+def class_weighted_cross_entropy_loss(logits, targets, class_weights, ignore_index=None, **kwargs):
     """
     class_weights: (C,) tensor
     creates class_weights on the fly so that the total potential loss for each
@@ -53,3 +69,4 @@ def class_weighted_cross_entropy_loss(logits, targets, class_weights, ignore_ind
         weight=class_weights,
         ignore_index=ignore_index
     )
+

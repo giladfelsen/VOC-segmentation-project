@@ -17,6 +17,9 @@ from src.data.transforms import (
 import src.data.transforms as transforms_module
 from src.models.model_factory import build_model
 from src.metrics.segmentation import compute_segmentation_metrics
+from src.optim.factory import build_optimizer
+from src.scheduler.factory import build_scheduler
+from src.losses.factory import build_loss_function
 
 from tqdm.auto import tqdm
 
@@ -25,6 +28,8 @@ from datetime import datetime # Will be used to determine which images to delete
 
 from src.utils.visualization import show_image_mask, to_numpy, colorize_mask
 import matplotlib.pyplot as plt
+
+from src.losses.segmentation import cross_entropy_loss
 
 
 
@@ -125,7 +130,7 @@ def visualize_and_save_random_batch(
 # ------------------------------
 # Training + Evaluation
 # ------------------------------
-def train_one_epoch(model, loader, optimizer, device, ignore_index=None):
+def train_one_epoch(model, loader, optimizer, loss_fn, device, ignore_index=None):
     model = model.to(device)
     model.train()
     total_loss = 0.0
@@ -139,28 +144,27 @@ def train_one_epoch(model, loader, optimizer, device, ignore_index=None):
 
         logits = model(images)
 
-        loss = F.cross_entropy(
-            logits,
-            masks,
-            ignore_index=ignore_index,
-        )
+        loss = loss_fn(logits, masks, ignore_index=ignore_index)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
         total_loss += loss.item()
-        
 
+        
+        
         # live update bar
         progress.set_postfix(loss=f"{loss.item():.4f}")
+
+        
 
     return total_loss / len(loader)
 
 
 
 @torch.no_grad()
-def evaluate(model, loader, device, num_classes, ignore_index=None):
+def evaluate(model, loader, loss_fn, device, num_classes, ignore_index=None):
     eval_device = "cpu" if device.type == "mps" else device
     model = model.to(eval_device)
     model.eval()
@@ -176,7 +180,7 @@ def evaluate(model, loader, device, num_classes, ignore_index=None):
 
         logits = model(images)
 
-        loss = F.cross_entropy(
+        loss = loss_fn(
             logits,
             masks,
             ignore_index=ignore_index,
@@ -264,11 +268,15 @@ def main():
         model = build_model(**cfg["model"]).to(device)
 
     # --- optimizer ---
-    opt_cfg = cfg.get("optimizer", {})
-    lr = opt_cfg.get("lr", 1e-3)
-    wd = opt_cfg.get("weight_decay", 0.0)
+    optimizer = build_optimizer(model, cfg)
 
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
+
+    # --- scheduler#= ---
+    # TODO
+    scheduler = build_scheduler(optimizer, cfg, len(train_loader))
+
+    # --- loss ---
+    loss_fn = build_loss_function(cfg)
 
     # --- logging ---
     # writer = SummaryWriter(log_dir="runs/baseline")
@@ -284,6 +292,8 @@ def main():
             model,
             train_loader,
             optimizer,
+            scheduler,
+            loss_fn,
             device,
             ignore_index=ignore_index,
         )
@@ -291,6 +301,7 @@ def main():
         val_stats = evaluate(
             model,
             val_loader,
+            loss_fn,
             device,
             num_classes=num_classes,
             ignore_index=ignore_index,
@@ -336,7 +347,7 @@ def main():
                     "model_state": model.state_dict(),
                     "optimizer_state": optimizer.state_dict(),
                     "val_loss": val_stats["loss"],
-                }, f"{saving_checkpoint_name}/best_model.pt")
+                }, f"{saving_checkpoint_name}/best_{key}_model.pt")
 
         # visualize model predictions on val set
         if cfg.get("visualize_model_preds", False):

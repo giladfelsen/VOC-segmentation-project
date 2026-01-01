@@ -1,0 +1,77 @@
+
+
+# ---- base dataset location ----
+data_dir: "/content/VOC-segmentation-project/data/raw/VOC2012_train_val"
+dataset_name: "VOC2012_train_val"
+
+# ---- subdirectories ----
+image_subdir: "JPEGImages"
+mask_subdir: "SegmentationClass"
+splits_subdir: "ImageSets/Segmentation"
+
+# ---- split file names ----
+train_split: "train.txt"
+val_split: "val.txt"
+
+# ---- how to split val.txt ----
+val_fraction: 0.5     # first half = val, second half = extra train
+
+# ---- transforms ----
+transform_pipeline: "basic"  # options: "baseline", "advanced"
+
+
+# ---- dataloader ----
+batch_size: 8
+num_workers: 2
+pin_memory: true
+shuffle_train: true
+test_batch_size: 1
+
+image_size: 128
+
+# ---- model ----
+model_checkpoint: null  # path to model checkpoint to load
+
+model:
+  name: "resnet34_unet"
+  num_classes: 21
+  freeze_encoder: false
+
+wrap_output: true
+
+# ---- optimizer ----
+optimizer:
+  name: "adamw"
+  lr: 0.0025
+  weight_decay: 0.00001
+
+# ---- LR Scheduler ----
+scheduler:
+  name: "multisteplr"
+  params:
+    milestones: [100, 200]
+    gamma: 0.1
+  warmup: true
+  update_mode: "epoch"
+
+
+
+# ---- training ----
+
+trainer:
+  epochs: 300
+
+loss_function: "cross_entropy"
+
+# ---- metrics ----
+metrics:
+  ignore_index: 255
+
+# ---- dev mode ----
+debug_samples: null    # set to e.g., 16 when debugging
+
+# ---- model performance visualization ----
+visualize_model_preds: true
+visualize_every: 15   # visualize every N epoch during training
+
+config_name: "basic"
