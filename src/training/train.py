@@ -292,7 +292,6 @@ def main():
             model,
             train_loader,
             optimizer,
-            scheduler,
             loss_fn,
             device,
             ignore_index=ignore_index,
