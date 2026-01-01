@@ -49,8 +49,8 @@ optimizer:
 scheduler:
   name: "multisteplr"
   params:
-    milestones: [150, 300]
-    gamma: 0.1
+    milestones: [100, 300, 400]
+    gamma: 0.3
   warmup: true
   update_mode: "epoch"
 
