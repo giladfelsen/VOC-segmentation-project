@@ -27,7 +27,7 @@ pin_memory: true
 shuffle_train: true
 test_batch_size: 1
 
-image_size: 128
+image_size: 256
 
 # ---- model ----
 model_checkpoint: null  # path to model checkpoint to load
